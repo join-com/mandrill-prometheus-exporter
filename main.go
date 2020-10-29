@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"os"
 	"bytes"
@@ -123,8 +124,10 @@ func main() {
              </body>
              </html>`))
 	})
-	http.Handle("/metrics", prometheus.Handler())
+	http.Handle("/metrics", promhttp.Handler())
 	//port 9153 https://github.com/prometheus/prometheus/wiki/Default-port-allocations
-	http.ListenAndServe(":9153", nil)
+	if err := http.ListenAndServe(":9153", nil); err != nil {
+		log.Fatalf("Could not listen on :9153: %v\n", err)
+	}
 }
 

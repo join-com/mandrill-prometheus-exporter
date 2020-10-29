@@ -1,4 +1,5 @@
-FROM golang:1.6-alpine
+### [stage 1]
+FROM golang:1.15-alpine as prebuild
 
 RUN mkdir -p /go/src/mandrill-prometheus-exporter
 WORKDIR /go/src/mandrill-prometheus-exporter
@@ -7,13 +8,12 @@ RUN apk add --update git \
     && rm -rf /var/cache/apk/*
 
 COPY . /go/src/mandrill-prometheus-exporter
-RUN go get -v \
-    && go install \
-    && rm -rf /go/src/mandrill-prometheus-exporter \
-    && mkdir -p /go/src/mandrill-prometheus-exporter
+RUN go get -v && go build
 
-ENV TZ=Europe/Berlin
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+### [stage 2]
+FROM alpine:3.7
+
+COPY --from=prebuild /go/bin/mandrill-prometheus-exporter /usr/local/bin/
 EXPOSE 9153
 ENTRYPOINT ["mandrill-prometheus-exporter"]
